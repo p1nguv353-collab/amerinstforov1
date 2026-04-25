@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amerinst Comunidad - Persistencia Total</title>
+    <style>
+        :root { --rojo: #e63946; --rojo-oscuro: #c1121f; --blanco: #ffffff; --fondo: #f8f9fa; --texto: #2b2d42; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--fondo); margin: 0; color: var(--texto); }
+        
+        /* Login */
+        #login-screen { display: flex; justify-content: center; align-items: center; height: 100vh; background: var(--rojo); }
+        .login-box { background: white; padding: 40px; border-radius: 15px; text-align: center; width: 320px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        
+        /* Layout */
+        #main-site { display: none; }
+        header { background: white; border-bottom: 2px solid var(--rojo); padding: 0 50px; display: flex; justify-content: space-between; align-items: center; height: 70px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .container { display: grid; grid-template-columns: 280px 1fr; gap: 25px; padding: 25px; max-width: 1200px; margin: auto; }
+        
+        .card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        input, textarea, select { width: 100%; margin: 8px 0; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        
+        .btn { background: var(--rojo); color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; }
+        .btn:hover { background: var(--rojo-oscuro); }
+        
+        /* Menu */
+        .menu-item { padding: 12px; border-radius: 8px; cursor: pointer; margin-bottom: 5px; font-weight: 500; transition: 0.2s; }
+        .menu-item:hover, .menu-active { background: var(--rojo); color: white; }
+
+        /* Post Styles */
+        .post-header { font-weight: bold; color: var(--rojo); margin-bottom: 10px; display: flex; justify-content: space-between; }
+        .post-img { width: 100%; border-radius: 8px; margin-top: 10px; max-height: 400px; object-fit: cover; border: 1px solid #eee; }
+        .badge { background: #eee; padding: 2px 8px; border-radius: 4px; font-size: 11px; color: #666; }
+        .post-actions { border-top: 1px solid #eee; margin-top: 15px; padding-top: 10px; display: flex; gap: 20px; }
+        .action-btn { background: none; border: none; cursor: pointer; color: #666; font-weight: bold; }
+        .liked { color: var(--rojo) !important; }
+    </style>
+</head>
+<body>
+
+    <div id="login-screen">
+        <div class="login-box">
+            <h1 style="color: var(--rojo); margin: 0;">Amerinst</h1>
+            <p style="margin-bottom: 25px; color: #666;">Comunidad Académica</p>
+            <input type="text" id="userInput" placeholder="Usuario">
+            <input type="password" id="passInput" placeholder="Contraseña">
+            <button class="btn" onclick="login()">Entrar</button>
+            <p id="login-error" style="color: red; font-size: 12px; margin-top: 10px;"></p>
+        </div>
+    </div>
+
+    <div id="main-site">
+        <header>
+            <h2 style="color: var(--rojo);">Amerinst</h2>
+            <div id="user-info" style="font-weight: bold;"></div>
+            <button onclick="logout()" style="border: none; background: #eee; padding: 8px 15px; border-radius: 20px; cursor: pointer;">Cerrar Sesión</button>
+        </header>
+
+        <div class="container">
+            <aside>
+                <div class="card" id="menu">
+                    <div id="btn-Inicio" class="menu-item menu-active" onclick="cambiarSeccion('Inicio')">🏠 Inicio</div>
+                    <div id="btn-Biblioteca" class="menu-item" onclick="cambiarSeccion('Biblioteca')">📚 Biblioteca</div>
+                    <div id="btn-Anuncios" class="menu-item" onclick="cambiarSeccion('Anuncios')">📢 Anuncios</div>
+                    <div id="btn-Logros" class="menu-item" onclick="cambiarSeccion('Logros')">🏆 Logros</div>
+                </div>
+
+                <div id="admin-tools" class="card" style="display: none; background: #fff5f5; border: 1px dashed var(--rojo);">
+                    <h4 style="margin: 0 0 10px 0; color: var(--rojo);">Panel Admin</h4>
+                    <input type="text" id="newU" placeholder="Nuevo Usuario">
+                    <input type="password" id="newP" placeholder="Clave">
+                    <button class="btn" style="font-size: 12px;" onclick="registrarUsuario()">Registrar</button>
+                </div>
+            </aside>
+
+            <main>
+                <div id="editor-card" class="card">
+                    <h4 id="seccion-titulo" style="margin-top: 0;">Publicar en Inicio</h4>
+                    <textarea id="postContent" rows="3" placeholder="Escribe un comunicado o sube material..."></textarea>
+                    
+                    <div id="admin-only-fields" style="display: none;">
+                        <label style="font-size: 12px;">Adjuntar Imagen:</label>
+                        <input type="file" id="postFile" accept="image/*">
+                        <label style="font-size: 12px;">Destino:</label>
+                        <select id="postDestino">
+                            <option value="Inicio">Inicio</option>
+                            <option value="Biblioteca">Biblioteca</option>
+                            <option value="Anuncios">Anuncios</option>
+                            <option value="Logros">Logros</option>
+                        </select>
+                    </div>
+                    <button class="btn" onclick="crearPublicacion()">Publicar en Amerinst</button>
+                </div>
+
+                <div id="feed"></div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // CARGA INICIAL DE DATOS DESDE LOCALSTORAGE O VALORES POR DEFECTO
+        let db_usuarios = JSON.parse(localStorage.getItem('amerinst_users')) || [
+            { u: "admin", p: "123", r: "admin" },
+            { u: "pepe", p: "123", r: "user" }
+        ];
+
+        let db_posts = JSON.parse(localStorage.getItem('amerinst_posts')) || [
+            { id: 1, seccion: "Inicio", autor: "Admin", texto: "Bienvenidos a la persistencia total de Amerinst.", img: null }
+        ];
+
+        let userLogueado = null;
+        let seccionActual = "Inicio";
+
+        // --- LÓGICA DE LOGIN ---
+        function login() {
+            const u = document.getElementById('userInput').value;
+            const p = document.getElementById('passInput').value;
+            const found = db_usuarios.find(x => x.u.toLowerCase() === u.toLowerCase() && x.p === p);
+
+            if (found) {
+                userLogueado = found;
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('main-site').style.display = 'block';
+                document.getElementById('user-info').innerText = (found.r === 'admin' ? "🛡️ " : "👤 ") + found.u;
+                
+                if(found.r === 'admin') {
+                    document.getElementById('admin-tools').style.display = 'block';
+                    document.getElementById('admin-only-fields').style.display = 'block';
+                    document.getElementById('editor-card').style.display = 'block';
+                } else {
+                    document.getElementById('admin-tools').style.display = 'none';
+                    document.getElementById('editor-card').style.display = 'none';
+                }
+                actualizarFeed();
+            } else { 
+                document.getElementById('login-error').innerText = "Usuario o clave incorrectos";
+            }
+        }
+
+        function logout() {
+            userLogueado = null;
+            document.getElementById('main-site').style.display = 'none';
+            document.getElementById('login-screen').style.display = 'flex';
+            document.getElementById('userInput').value = "";
+            document.getElementById('passInput').value = "";
+        }
+
+        // --- NAVEGACIÓN ---
+        function cambiarSeccion(nombre) {
+            seccionActual = nombre;
+            document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('menu-active'));
+            document.getElementById('btn-' + nombre).classList.add('menu-active');
+            document.getElementById('seccion-titulo').innerText = "Publicar en " + nombre;
+            
+            if(userLogueado && userLogueado.r === 'admin') {
+                document.getElementById('postDestino').value = nombre;
+            }
+            actualizarFeed();
+        }
+
+        // --- PERSISTENCIA DE USUARIOS ---
+        function registrarUsuario() {
+            const nu = document.getElementById('newU').value;
+            const np = document.getElementById('newP').value;
+            if(nu && np) {
+                if(db_usuarios.some(x => x.u === nu)) return alert("El usuario ya existe");
+                
+                db_usuarios.push({ u: nu, p: np, r: "user" });
+                localStorage.setItem('amerinst_users', JSON.stringify(db_usuarios)); // Guardar en PC
+                alert("Usuario " + nu + " guardado permanentemente.");
+                document.getElementById('newU').value = ""; document.getElementById('newP').value = "";
+            }
+        }
+
+        // --- PERSISTENCIA DE PUBLICACIONES ---
+        function crearPublicacion() {
+            const texto = document.getElementById('postContent').value;
+            const destino = document.getElementById('postDestino').value;
+            const fileInput = document.getElementById('postFile');
+            
+            if(!texto.trim()) return alert("Escribe un mensaje");
+
+            if (fileInput.files && fileInput.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    guardarPost(texto, destino, e.target.result);
+                };
+                reader.readAsDataURL(fileInput.files[0]); // Convierte imagen a texto para guardar en localStorage
+            } else {
+                guardarPost(texto, destino, null);
+            }
+        }
+
+        function guardarPost(texto, destino, imgData) {
+            const nuevo = {
+                id: Date.now(),
+                seccion: destino,
+                autor: userLogueado.u,
+                texto: texto,
+                img: imgData,
+                likes: 0
+            };
+
+            db_posts.unshift(nuevo);
+            localStorage.setItem('amerinst_posts', JSON.stringify(db_posts)); // Guardar en PC
+            
+            document.getElementById('postContent').value = "";
+            document.getElementById('postFile').value = "";
+            actualizarFeed();
+        }
+
+        function actualizarFeed() {
+            const feed = document.getElementById('feed');
+            feed.innerHTML = "";
+            const filtrados = db_posts.filter(p => p.seccion === seccionActual);
+
+            if(filtrados.length === 0) {
+                feed.innerHTML = `<div style="text-align:center; padding:40px; color:gray;">No hay contenido en ${seccionActual}</div>`;
+                return;
+            }
+
+            filtrados.forEach(p => {
+                feed.innerHTML += `
+                    <div class="card">
+                        <div class="post-header">
+                            <span>${p.autor} <span class="badge">${p.seccion}</span></span>
+                        </div>
+                        <div style="white-space: pre-wrap;">${p.texto}</div>
+                        ${p.img ? `<img src="${p.img}" class="post-img">` : ''}
+                        <div class="post-actions">
+                            <button class="action-btn" onclick="this.classList.toggle('liked')">❤️ Me gusta</button>
+                            <button class="action-btn" onclick="alert('Sistema de comentarios externo')">💬 Responder</button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+    </script>
+</body>
+</html>
